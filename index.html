@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>RitualNet — Zodiac Reveal (Pro)</title>
+  <title>RitualNet — Zodiac Reveal (Official Logo Reveal)</title>
 
   <!-- GSAP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -19,10 +19,10 @@
     <!-- Left controls -->
     <div class="panel">
       <h1>RitualNet — Zodiac Reveal</h1>
-      <p class="lead">Type any zodiac sign (or pick from the dropdown). Press Reveal — watch the sigil bloom, then read your ritual prediction.</p>
+      <p class="lead">Type or pick a zodiac sign → Reveal. The official Ritual logo animates, then the black & white ritual card (with green flame candle) unfolds. Share or download your card.</p>
 
       <div class="control-row">
-        <input id="signInput" class="input" placeholder="Enter sign (eg. aries, scorpio)" />
+        <input id="signInput" class="input" placeholder="Enter sign (e.g., scorpio)" />
         <button id="reveal" class="btn primary">Reveal</button>
       </div>
 
@@ -39,21 +39,35 @@
 
       <div class="control-row" style="margin-top:12px;">
         <button id="shareTweet" class="btn">Share (X)</button>
-        <button id="downloadCard" class="btn">Download Image</button>
+        <button id="downloadCard" class="btn">Download PNG</button>
+        <button id="muteBtn" class="btn">Mute</button>
       </div>
 
-      <p class="hint">Drag & drop a sigil image onto the preview to replace the default. Put `sigil-default.png` in `assets/` or change the path in <code>app.js</code>.</p>
+      <p class="hint">Place your official logo at <code>assets/ritual-logo.svg</code> (optional). Drag & drop a sigil image onto the preview to replace the center sigil.</p>
     </div>
 
     <!-- Right preview stage -->
     <div class="stage">
-      <div id="viewport" class="viewport" aria-live="polite">
+      <div id="viewport" class="viewport" aria-live="polite" data-image="assets/sigil-default.png">
+        <!-- particle canvas -->
         <canvas id="particles" class="particles"></canvas>
 
-        <div id="sigilWrap" class="sigil-wrap" aria-hidden="true">
-          <img id="sigilImg" class="sigil" src="" alt="sigil" draggable="false" />
+        <!-- official logo container (SVG loaded from assets/ritual-logo.svg if available; fallback inline below) -->
+        <div id="logoWrap" class="logo-wrap" aria-hidden="true" title="Ritual logo (animates)">
+          <!-- Try to load external logo; app.js will set src on load if available -->
+          <img id="logoImg" src="assets/ritual-logo.svg" alt="Ritual logo" class="logo-img" onerror="this.style.display='none'"/>
+          <!-- fallback inline logo (simple knot icon) -->
+          <svg id="logoFallback" class="logo-fallback" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="currentColor" d="M100 10 L140 50 L100 90 L60 50 Z M100 110 L140 150 L100 190 L60 150 Z" />
+          </svg>
         </div>
 
+        <!-- sigil (optional) -->
+        <div id="sigilWrap" class="sigil-wrap" aria-hidden="true">
+          <img id="sigilImg" class="sigil" src="assets/sigil-default.png" alt="sigil" draggable="false" />
+        </div>
+
+        <!-- bloom -->
         <svg class="bloom" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <radialGradient id="g1" cx="50%" cy="40%" r="60%">
@@ -66,13 +80,39 @@
         </svg>
 
         <div class="overlay"></div>
-        <div id="dropHint" class="drop-hint">Drop an image here to replace the sigil</div>
+        <div id="dropHint" class="drop-hint">Drop a sigil image here</div>
 
+        <!-- ritual card (initially hidden, black & white design) -->
         <div id="card" class="card" role="article" aria-hidden="true">
-          <div id="cardTitle" class="title">The Shadow Ritual</div>
-          <div id="cardDesc" class="desc">You turn silence into signal. Breathe deep, and let hidden truths sharpen into tools.</div>
-          <div id="cardMini" class="mini">Mini-ritual: Breathe in the dark; exhale a secret.</div>
+          <div class="card-top">
+            <div class="card-left">
+              <div id="cardSigil" class="card-sigil">♏</div>
+            </div>
+            <div class="card-right">
+              <div id="cardTitle" class="card-title">The Shadow Ritual</div>
+              <div id="cardSub" class="card-sub">♏ Scorpio</div>
+            </div>
+          </div>
+
+          <div id="cardDesc" class="card-desc">You turn silence into signal. Breathe deep, and let hidden truths sharpen into tools.</div>
+
+          <!-- candle illustration with green flame (SVG inline so it captures in canvas export) -->
+          <div class="card-footer">
+            <svg class="candle" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- candle body -->
+              <rect x="88" y="80" width="24" height="70" rx="6" fill="#ffffff" opacity="0.98"/>
+              <!-- wick -->
+              <rect x="98" y="70" width="4" height="12" fill="#222"/>
+              <!-- green flame -->
+              <g id="greenFlame">
+                <path d="M100 68 C94 58, 94 50, 100 44 C106 50,106 58,100 68 Z" fill="#9bffb0"/>
+                <path d="M100 60 C97 56,97 52,100 49 C103 52,103 56,100 60 Z" fill="#00ff80"/>
+              </g>
+            </svg>
+            <div class="card-mini" id="cardMini">Mini-ritual: Breathe in the dark; exhale a secret.</div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
