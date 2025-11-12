@@ -3,178 +3,482 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Zodiac Ritual — Simple Reveal</title>
+<title>RitualNet — Zodiac Ritual (Pro Reveal)</title>
+
+<!-- GSAP for professional animations -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<!-- Inter font for UI + Cinzel for ritual title -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
   :root{
-    --bg:#060608;
-    --panel:#0f0f12;
-    --accent:#b51c1c;
+    --bg:#040405;
+    --panel:#0c0c0e;
+    --accent:#00ff80;      /* you can tweak to match the sigil */
     --gold:#cfa46b;
-    --muted:#9a9a9a;
-    --card-w:420px;
+    --muted:#9aa0a6;
+    --card-w:520px;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
+  html,body{height:100%; margin:0; background:#000; font-family:Inter,system-ui, -apple-system; color:#eee}
   body{
-    margin:0;
-    font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background:
-      radial-gradient(900px 450px at 10% 10%, rgba(181,28,28,0.05), transparent 8%),
-      linear-gradient(180deg,#050506 0%, #0b0b0d 100%);
-    color:#eee;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:28px;
+    display:flex; align-items:center; justify-content:center; padding:28px;
+    background: radial-gradient(800px 400px at 10% 10%, rgba(0,255,128,0.02), transparent 6%),
+                linear-gradient(180deg,#020203 0%, #070708 70%);
   }
 
-  .wrap{ width:100%; max-width:900px; display:flex; gap:28px; align-items:flex-start; justify-content:center; }
-  .left{ width:360px; }
-  h1{ font-family:"Georgia",serif; color:var(--gold); margin:0 0 8px; font-size:20px }
-  p.lead{ color:var(--muted); margin:0 0 16px; font-size:13px }
+  .container{ width:100%; max-width:1200px; display:grid; grid-template-columns: 420px 1fr; gap:28px; align-items:start; }
 
-  .input-row{ display:flex; gap:8px; margin-bottom:12px }
-  input[type="text"]{
-    flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
+  /* controls */
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:18px; padding:20px; border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  h1{ margin:0; font-family:Cinzel, serif; color:var(--gold); font-size:20px; letter-spacing:0.6px }
+  p.lead{ margin:6px 0 16px; color:var(--muted); font-size:13px }
+  .controls-row{ display:flex; gap:8px; margin-bottom:12px; align-items:center }
+  .input{
+    flex:1; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
     background:rgba(255,255,255,0.02); color:#fff; font-size:14px;
   }
-  button{ padding:10px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:700; }
-  .btn-primary{ background:linear-gradient(90deg,#b51c1c,#cfa46b); color:#080808 }
+  .btn{ padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:700; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.06) }
+  .btn.primary{ background: linear-gradient(90deg,#00ff70,#cfa46b); color:#0a0a0a; border:none; box-shadow:0 8px 30px rgba(0,255,128,0.06) }
 
-  .preview{ width:var(--card-w); background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
-           border-radius:14px; padding:20px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-           position:relative; overflow:hidden; }
-  .sigil{ font-size:48px; color:var(--gold); display:block; margin-bottom:10px; opacity:0; transform:scale(.8); }
-  .card-title{ font-family:"Georgia",serif; color:var(--gold); font-size:18px; margin:6px 0; opacity:0; transform:translateY(8px); }
-  .card-text{ color:#e9e9e9; font-size:14px; line-height:1.4; background:rgba(255,255,255,0.01); padding:12px; border-radius:8px; margin-top:10px; min-height:72px; opacity:0; transform:translateY(8px) }
-
-  /* glow ring (animated) */
-  .glow-ring{
-    position:absolute; left:50%; top:20px; width:520px; height:520px;
-    transform:translate(-50%,-10%); border-radius:50%;
-    background: radial-gradient(circle at 30% 30%, rgba(181,28,28,0.10), transparent 15%),
-                radial-gradient(circle at 70% 70%, rgba(207,164,107,0.06), transparent 12%);
-    filter: blur(28px); opacity:0; pointer-events:none;
+  /* preview area (right) */
+  .stage{
+    position:relative;
+    min-height:640px;
+    display:flex; align-items:center; justify-content:center;
   }
 
-  /* reveal animations */
-  .animate-sigil{ animation: sigilIn .72s cubic-bezier(.22,.9,.28,1) forwards; }
-  @keyframes sigilIn {
-    0%{ opacity:0; transform:scale(.6) rotate(-10deg) }
-    60%{ opacity:1; transform:scale(1.06) rotate(6deg) }
-    100%{ opacity:1; transform:scale(1) rotate(0) }
+  .viewport{
+    width:var(--card-w);
+    height:640px;
+    border-radius:16px;
+    overflow:hidden;
+    position:relative;
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.06));
+    border:1px solid rgba(255,255,255,0.02);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7);
   }
-  .animate-title{ animation: titleIn .6s ease forwards; animation-delay:.12s; }
-  @keyframes titleIn { from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:translateY(0) } }
-  .animate-text{ animation: textIn .6s ease forwards; animation-delay:.22s; }
-  @keyframes textIn { from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:translateY(0) } }
 
-  /* small responsive */
-  @media (max-width:880px){ .wrap{flex-direction:column; align-items:center} .left{width:100%} .preview{width:90%} }
+  /* canvas sits above bg but below UI */
+  canvas.particles{
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+  }
+
+  /* large sigil image container */
+  .sigil-wrap{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:3; pointer-events:none;
+    transform-origin:center center;
+  }
+  .sigil{
+    width:58%; max-width:340px; filter: drop-shadow(0 30px 60px rgba(0,255,128,0.08)) saturate(1.25);
+    transform-origin:center center;
+    will-change:transform, filter, opacity;
+  }
+
+  /* bloom layer — using svg filter via CSS (dark UI) */
+  .bloom{
+    position:absolute; inset:0; z-index:4; pointer-events:none;
+    mix-blend-mode:screen; opacity:0.9;
+  }
+
+  /* vignette + grain overlay */
+  .overlay{
+    position:absolute; inset:0; z-index:6; pointer-events:none; 
+    background: radial-gradient(60% 60% at 50% 40%, rgba(0,0,0,0), rgba(0,0,0,0.6));
+  }
+
+  /* ritual card (hidden until reveal) */
+  .card{
+    position:absolute; left:50%; transform:translateX(-50%) translateY(24px) scale(.98); bottom:48px;
+    width:86%; max-width:460px; z-index:7;
+    background: linear-gradient(180deg, rgba(10,10,10,0.9), rgba(15,15,15,0.95));
+    border-radius:12px; padding:18px;
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    opacity:0; pointer-events:none;
+  }
+  .card .title{ font-family:Cinzel, serif; font-size:18px; color:var(--gold); margin:0 0 6px }
+  .card .desc{ color:#e9e9e9; font-size:14px; line-height:1.5; min-height:68px; margin-bottom:10px }
+  .card .mini{ color:var(--muted); font-size:13px }
+
+  /* drop target UI */
+  .drop-hint{ position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:8; font-size:12px; color:var(--muted); opacity:0.7; }
+
+  /* small responsive rules */
+  @media (max-width:1000px){ .container{ grid-template-columns: 1fr; } .viewport{ margin:20px auto } }
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <div class="left">
-    <h1>RitualNet — Zodiac Ritual</h1>
-    <p class="lead">Type your zodiac sign (e.g., Aries) — press Reveal. A short ritual & prediction will appear with a quick glowy animation.</p>
+<div class="container">
+  <!-- Left controls -->
+  <div class="panel">
+    <h1>RitualNet — Zodiac Reveal</h1>
+    <p class="lead">Type any zodiac sign (or pick an icon). Press Reveal — watch the sigil bloom, then read your ritual prediction.</p>
 
-    <div class="input-row">
-      <input id="signInput" type="text" placeholder="Enter sign name (e.g., aries)" aria-label="Zodiac sign">
-      <button id="revealBtn" class="btn-primary">Reveal</button>
+    <div style="display:flex; gap:8px; margin-bottom:10px">
+      <input id="signInput" class="input" placeholder="Enter sign (eg. aries, scorpio)" />
+      <button id="reveal" class="btn primary">Reveal</button>
     </div>
 
-    <div style="color:var(--muted); font-size:13px">Tip: Accept common spellings (aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces)</div>
+    <div style="display:flex; gap:8px; margin-bottom:8px">
+      <!-- simple quick picker -->
+      <select id="quickPick" class="input" style="max-width:220px">
+        <option value="">— or pick sign —</option>
+        <option value="aries">Aries ♈</option><option value="taurus">Taurus ♉</option><option value="gemini">Gemini ♊</option>
+        <option value="cancer">Cancer ♋</option><option value="leo">Leo ♌</option><option value="virgo">Virgo ♍</option>
+        <option value="libra">Libra ♎</option><option value="scorpio">Scorpio ♏</option><option value="sagittarius">Sagittarius ♐</option>
+        <option value="capricorn">Capricorn ♑</option><option value="aquarius">Aquarius ♒</option><option value="pisces">Pisces ♓</option>
+      </select>
+      <button id="randomBtn" class="btn">Random</button>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="shareTweet" class="btn">Share (X)</button>
+      <button id="downloadCard" class="btn">Download Image</button>
+    </div>
+
+    <div style="margin-top:14px; font-size:13px; color:var(--muted)">
+      Drag & drop a sigil image onto the preview to use your own. Default loads the green sigil.
+    </div>
   </div>
 
-  <div class="preview" id="preview">
-    <div class="glow-ring" id="glow"></div>
+  <!-- Right preview stage -->
+  <div class="stage">
+    <div class="viewport" id="viewport" aria-live="polite" data-image="sigil-default.png">
+      <!-- Particle canvas -->
+      <canvas id="particles" class="particles"></canvas>
 
-    <div class="sigil" id="sigil">♏</div>
-    <div class="card-title" id="title">The Shadow Ritual</div>
-    <div class="card-text" id="text">You transmute what others discard. Your ritual is quiet, precise, and irreversible — you turn hidden things into gravitas.</div>
+      <!-- sigil image (can be replaced) -->
+      <div class="sigil-wrap" id="sigilWrap">
+        <img id="sigilImg" class="sigil" src="" alt="sigil" draggable="false" />
+      </div>
+
+      <!-- bloom SVG filter layer (screen blend) -->
+      <svg class="bloom" viewBox="0 0 100 100" preserveAspectRatio="none" style="pointer-events:none;">
+        <!-- subtle gradient veil to intensify glow -->
+        <defs>
+          <radialGradient id="g1" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#00ff80" stop-opacity="0.28"/>
+            <stop offset="45%" stop-color="#00ff80" stop-opacity="0.08"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="100" height="100" fill="url(#g1)"></rect>
+      </svg>
+
+      <div class="overlay"></div>
+
+      <div class="drop-hint" id="dropHint">Drop an image here to replace the sigil</div>
+
+      <!-- ritual card -->
+      <div class="card" id="card">
+        <div class="title" id="cardTitle">The Shadow Ritual</div>
+        <div class="desc" id="cardDesc">You turn silence into signal. Breathe deep, and let hidden truths sharpen into tools.</div>
+        <div class="mini" id="cardMini">Mini-ritual: Breathe in the dark; exhale a secret.</div>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- html2canvas for export -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
 <script>
-/* Minimal rituals map (lowercase keys) */
-const simple = {
-  aries: { glyph:"♈", title:"The First Flame", text:"You move before the world asks permission. Strike once, burn bright, and do not apologize." },
-  taurus: { glyph:"♉", title:"The Grounding", text:"You shape reality by staying. Hold a long breath and let the world bend to patient will." },
-  gemini: { glyph:"♊", title:"The Split Signal", text:"You speak in echoes. Whisper twice, once for the future and once for the past." },
-  cancer: { glyph:"♋", title:"The Shell of Echoes", text:"You carry oceans beneath calm. Press a fingertip to your heart and listen to the tide." },
-  leo: { glyph:"♌", title:"The Golden Rite", text:"You collect the light. Stand, make a small gesture, and take back the room." },
-  virgo: { glyph:"♍", title:"The Precision", text:"You consecrate through craft. Do one small tidy thing perfectly and watch order reward you." },
-  libra: { glyph:"♎", title:"The Balance", text:"You weigh chaos into symmetry. Choose the kinder option and set it as your standard." },
-  scorpio: { glyph:"♏", title:"The Shadow Ritual", text:"You turn silence into signal. Breathe deep, and let hidden truths sharpen into tools." },
-  sagittarius: { glyph:"♐", title:"The Arrow Path", text:"You chase unlabeled horizons. Point to a distant place and vow one small step." },
-  capricorn: { glyph:"♑", title:"The Summit", text:"You climb quietly. Make one measurable promise and take the step that keeps you ascending." },
-  aquarius: { glyph:"♒", title:"The Signal", text:"You broadcast the future. Do one strange, intentional thing to shift the pattern." },
-  pisces: { glyph:"♓", title:"The Dreaming", text:"You move between tides. Draw one tiny symbol on your palm and remember the path." }
+/* ---------------------------
+   Data: Minimal ritual copy (can be expanded)
+   --------------------------- */
+const rituals = {
+  aries: { glyph:"♈", title:"The First Flame", desc:"You move before the world asks permission. Strike once, burn bright, and do not apologize.", mini:"Clap once and whisper your next move." },
+  taurus: { glyph:"♉", title:"The Grounding", desc:"You shape reality by staying. Hold a long breath and let patient will make the world conform.", mini:"Plant your palm and breathe four counts." },
+  gemini: { glyph:"♊", title:"The Split Signal", desc:"You speak in echoes. Whisper twice, once for the future and once for the past.", mini:"Say your name forwards, then backwards." },
+  cancer: { glyph:"♋", title:"The Shell of Echoes", desc:"You carry oceans beneath calm. Press a fingertip to your heart and listen to the tide.", mini:"Press a fingertip to your chest and hum." },
+  leo: { glyph:"♌", title:"The Golden Rite", desc:"You collect the light. Stand, make a small gesture, and claim the room's attention.", mini:"Lift your chin; smile for three slow counts." },
+  virgo: { glyph:"♍", title:"The Precision", desc:"You consecrate through craft. Do one small tidy thing perfectly and watch order reward you.", mini:"Tuck a small note away for tomorrow." },
+  libra: { glyph:"♎", title:"The Balance", desc:"You weigh chaos into symmetry. Choose the kinder option and let it be your standard.", mini:"Name one thing you'll balance today." },
+  scorpio: { glyph:"♏", title:"The Shadow Ritual", desc:"You turn silence into signal. Breathe deep, and let hidden truths sharpen into tools.", mini:"Breathe in the dark; exhale a secret." },
+  sagittarius: { glyph:"♐", title:"The Arrow Path", desc:"You chase unlabeled horizons. Point to a distant place and vow one small step.", mini:"Point to a distant spot and name one goal." },
+  capricorn: { glyph:"♑", title:"The Summit", desc:"You climb quietly. Make one measurable promise and take the step that keeps you ascending.", mini:"Make one small measurable promise this week." },
+  aquarius: { glyph:"♒", title:"The Signal", desc:"You broadcast the future. Do one strange, deliberate thing and shift the pattern.", mini:"Share one idea with a stranger." },
+  pisces: { glyph:"♓", title:"The Dreaming", desc:"You move between tides. Draw one tiny symbol on your palm and remember the path.", mini:"Draw one tiny shape on your palm." }
 };
 
-const input = document.getElementById('signInput');
-const btn = document.getElementById('revealBtn');
-const sigilEl = document.getElementById('sigil');
-const titleEl = document.getElementById('title');
-const textEl = document.getElementById('text');
-const glow = document.getElementById('glow');
+/* ---------------------------
+   DOM refs
+   --------------------------- */
+const signInput = document.getElementById('signInput');
+const quickPick = document.getElementById('quickPick');
+const revealBtn = document.getElementById('reveal');
+const randomBtn = document.getElementById('randomBtn');
+const card = document.getElementById('card');
+const cardTitle = document.getElementById('cardTitle');
+const cardDesc = document.getElementById('cardDesc');
+const cardMini = document.getElementById('cardMini');
+const sigilImg = document.getElementById('sigilImg');
+const viewport = document.getElementById('viewport');
+const particlesCanvas = document.getElementById('particles');
+const dropHint = document.getElementById('dropHint');
+const shareTweet = document.getElementById('shareTweet');
+const downloadCard = document.getElementById('downloadCard');
 
-/* normalize user input to key */
-function norm(v){ return (v||"").trim().toLowerCase().replace(/[^a-z]/g,'') }
+/* default sigil: a small embedded inline image fallback (use your own file)
+   Replace "sigil-default.png" with the path to your preferred sigil, or drag-drop to replace at runtime.
+   If you want to embed the provided green sigil, replace below src with that image path.
+*/
+const DEFAULT_SIGIL = (function(){
+  // placeholder for remote or local image. If running locally, place your sigil image next to the file and name it sigil-default.png
+  // You can also set a remote URL here.
+  return 'sigil-default.png';
+})();
 
-/* simple sparkle animation using CSS + JS */
-function playRevealAnimation(){
-  // glow pulse
-  glow.style.opacity = "1";
-  glow.style.transform = "translate(-50%,-10%) scale(.9)";
-  glow.style.transition = "opacity .12s ease, transform .7s cubic-bezier(.22,.9,.28,1)";
-  setTimeout(()=> { glow.style.transform = "translate(-50%,-10%) scale(1.12)"; }, 20);
-  setTimeout(()=> { glow.style.opacity = "0"; }, 720);
+sigilImg.src = DEFAULT_SIGIL;
 
-  // animate elements in
-  sigilEl.classList.remove('animate-sigil'); void sigilEl.offsetWidth; sigilEl.classList.add('animate-sigil');
-  titleEl.classList.remove('animate-title'); void titleEl.offsetWidth; titleEl.classList.add('animate-title');
-  textEl.classList.remove('animate-text'); void textEl.offsetWidth; textEl.classList.add('animate-text');
+/* Responsive canvas sizing */
+function resizeCanvas(){
+  particlesCanvas.width = viewport.clientWidth;
+  particlesCanvas.height = viewport.clientHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+/* ---------------------------
+   Particle engine (sparks) — light, efficient
+   --------------------------- */
+const ctx = particlesCanvas.getContext('2d');
+let particles = [];
+const MAX_PARTICLES = 60;
+
+function spawnParticle(x,y,strength=1){
+  particles.push({
+    x, y,
+    vx: (Math.random()-0.5) * 1.6 * strength,
+    vy: (Math.random()-0.8) * 1.6 * strength - 0.6*strength,
+    life: Math.random()*60 + 40,
+    size: Math.random()*2 + 0.8,
+    hue: 150 + Math.random()*40,
+    alpha: 1
+  });
+  if(particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
 }
 
-/* update card from key */
-function revealForKey(key){
-  const r = simple[key];
-  if(!r){
-    // fallback - random mystical line if sign not found
-    sigilEl.textContent = "✶";
-    titleEl.textContent = "The Unknown Rite";
-    textEl.textContent = "The signs misread you. Step back, breathe, and name the intention aloud.";
-  } else {
-    sigilEl.textContent = r.glyph;
-    titleEl.textContent = r.title;
-    textEl.textContent = r.text;
+function updateParticles(){
+  ctx.clearRect(0,0,particlesCanvas.width, particlesCanvas.height);
+  for(let i = particles.length-1; i >= 0; --i){
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.03; // gravity
+    p.life -= 1;
+    p.alpha = Math.max(0, p.life / 100);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.beginPath();
+    const g = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*12);
+    g.addColorStop(0, `rgba(170,255,200,${0.95*p.alpha})`);
+    g.addColorStop(0.2, `rgba(120,255,170,${0.25*p.alpha})`);
+    g.addColorStop(1, `rgba(0,0,0,0)`);
+    ctx.fillStyle = g;
+    ctx.arc(p.x,p.y,p.size*6,0,Math.PI*2);
+    ctx.fill();
+
+    p.size *= 0.998;
+    if(p.life <= 0 || p.alpha <= 0.02) particles.splice(i,1);
   }
-  playRevealAnimation();
 }
 
-/* button handler */
-btn.addEventListener('click', ()=>{
-  const val = norm(input.value);
-  if(!val){
-    input.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}], {duration:320});
+/* continuous loop */
+let running = true;
+function loop(){
+  if(running) updateParticles();
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ---------------------------
+   Reveal animation sequence (GSAP timeline)
+   --------------------------- */
+const tl = gsap.timeline({defaults:{ease:"power3.out"}});
+
+// helper to normalize sign input
+function keyFrom(str){
+  if(!str) return "";
+  return str.trim().toLowerCase().replace(/[^a-z]/g,'');
+}
+
+function showCardFor(signKey){
+  const r = rituals[signKey];
+  if(!r){
+    cardTitle.textContent = "The Unknown Rite";
+    cardDesc.textContent = "The signs misread you. Step back, breathe, and name the intention aloud.";
+    cardMini.textContent = "Mini-ritual: Pause. Name your goal in one sentence.";
+  } else {
+    cardTitle.textContent = r.title;
+    cardDesc.textContent = r.desc;
+    cardMini.textContent = "Mini-ritual: "+r.mini;
+  }
+}
+
+/* main reveal flow (sequential, pro feel) */
+function playReveal(signKey){
+  // ensure sigil is visible & reset transforms
+  sigilImg.style.transition = 'none';
+  sigilImg.style.transform = 'scale(0.86) rotate(-6deg) translateZ(0)';
+  sigilImg.style.filter = 'blur(6px) saturate(1.2) drop-shadow(0 40px 100px rgba(0,255,120,0.06))';
+  sigilImg.style.opacity = '0.02';
+
+  // clear particles
+  particles = [];
+
+  // prepare card initial state
+  gsap.set(card, {y:36, scale:0.98, opacity:0, rotation:0});
+
+  // timeline
+  const tlc = gsap.timeline();
+
+  // 1) background vignette pulse & subtle camera zoom
+  tlc.to(viewport, {duration:0.5, scale:1.02, ease:"power2.out", overwrite:true}, 0);
+
+  // 2) sigil entrance: soft zoom, rotate, and bloom ramp
+  tlc.to(sigilImg, {duration:0.65, opacity:1, scale:1.08, rotate:4, filter:'blur(0px) saturate(1.25) drop-shadow(0 40px 100px rgba(0,255,120,0.22))', ease:"back.out(1.2)"}, 0.06);
+  tlc.to(sigilImg, {duration:0.45, rotate:0, scale:1.0, ease:"power3.out"}, 0.7);
+
+  // spawn particles burst around center synchronized
+  tlc.call(()=> {
+    const rect = viewport.getBoundingClientRect();
+    const cx = rect.width/2;
+    const cy = rect.height/2 - 30;
+    for(let i=0;i<26;i++){
+      spawnParticle(cx + (Math.random()-0.5)*160, cy + (Math.random()-0.5)*140, 1.6);
+    }
+  }, null, 0.16);
+
+  // small cinematic flash + bloom ramp (simulate 'glow' moment)
+  tlc.to('.bloom', {duration:0.35, opacity:1.0, ease:'power2.out'}, 0.12);
+  tlc.to('.bloom', {duration:0.7, opacity:0.9, ease:'power2.out'}, 0.45);
+
+  // 3) "reveal" card with pop and micro-shake
+  tlc.to(card, {duration:0.55, opacity:1, y:0, scale:1, ease:"back.out(1.1)"}, 0.85);
+  tlc.to(card, {duration:0.12, rotation:1.2, y:-6, ease:"power2.inOut", yoyo:true, repeat:1}, 0.95);
+  tlc.call(()=> { showCardFor(signKey); }, null, 0.9);
+
+  // 4) continued particle trickle for atmosphere
+  tlc.call(()=> {
+    const rect = viewport.getBoundingClientRect();
+    const cx = rect.width/2;
+    const cy = rect.height/2 - 35;
+    let n = 0;
+    const iv = setInterval(()=>{
+      spawnParticle(cx + (Math.random()-0.5)*240, cy + (Math.random()-0.5)*200, 1.2);
+      n++;
+      if(n>26){ clearInterval(iv); }
+    }, 80);
+  }, null, 1.05);
+
+  // 5) subtle idle breathing for sigil and bloom
+  tlc.to(sigilImg, {duration:3, scale:1.02, ease:"sine.inOut", yoyo:true, repeat:-1}, 1.2);
+  tlc.to('.bloom', {duration:3, scale:1.02, ease:"sine.inOut", yoyo:true, repeat:-1}, 1.2);
+
+  return tlc;
+}
+
+/* hook up reveal button */
+revealBtn.addEventListener('click', ()=>{
+  const key = keyFrom(quickPick.value || signInput.value);
+  if(!key){
+    // small UX nudge
+    gsap.fromTo(signInput, {x:-4}, {duration:0.3, x:4, repeat:3, yoyo:true, clearProps:'x'});
     return;
   }
-  revealForKey(val);
+  // stop any previous timeline (if needed) and play new
+  if(tl && tl.isActive) tl.kill();
+  tl.kill(); // ensure previous cleared
+  tl.clear();
+  // play
+  playReveal(key);
 });
 
-/* allow Enter key to trigger reveal */
-input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); btn.click(); } });
+/* quick pick -> input sync */
+quickPick.addEventListener('change', ()=> { if(quickPick.value) signInput.value = quickPick.value; });
 
-/* optional: reveal default (scorpio) on load after slight delay */
-window.addEventListener('load', ()=> {
+randomBtn.addEventListener('click', ()=>{
+  const keys = Object.keys(rituals);
+  const k = keys[Math.floor(Math.random()*keys.length)];
+  quickPick.value = k; signInput.value = k;
+});
+
+/* start with a default (scorpio) */
+window.addEventListener('load', ()=>{
+  signInput.value = 'scorpio';
+  quickPick.value = 'scorpio';
+  // pre-load an attractive default: try to set the image if the file exists locally
+  // if you want to bundle the green sigil, place sigil-default.png next to this HTML
   setTimeout(()=> {
-    input.value = "Scorpio";
-    revealForKey('scorpio');
-  }, 360);
+    // try default image; if not found, user can drop image
+    sigilImg.src = DEFAULT_SIGIL;
+    // auto reveal first time
+    playReveal('scorpio');
+  }, 480);
 });
+
+/* ---------------------------
+   Drag & drop to replace image
+   --------------------------- */
+viewport.addEventListener('dragover', (e)=>{ e.preventDefault(); viewport.style.outline = '2px dashed rgba(255,255,255,0.06)'; });
+viewport.addEventListener('dragleave', (e)=>{ viewport.style.outline = 'none'; });
+viewport.addEventListener('drop', (e)=>{
+  e.preventDefault(); viewport.style.outline = 'none';
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(f && f.type.startsWith('image/')){
+    const url = URL.createObjectURL(f);
+    sigilImg.src = url;
+    // small entrance effect
+    gsap.fromTo(sigilImg, {scale:0.6, opacity:0}, {duration:0.8, scale:1, opacity:1, ease:"back.out(1.2)"});
+  }
+});
+
+/* ---------------------------
+   Share & Export
+   --------------------------- */
+shareTweet.addEventListener('click', ()=>{
+  const k = keyFrom(signInput.value || quickPick.value);
+  const r = rituals[k];
+  const tweet = r ? `My Zodiac Ritual: ${r.title} — ${r.desc} @Ritual_Net` : `I revealed a Zodiac Ritual @Ritual_Net`;
+  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
+  window.open(intent, '_blank', 'noopener,noreferrer');
+});
+
+downloadCard.addEventListener('click', ()=>{
+  // capture the viewport (sigil + card + bloom) using html2canvas
+  html2canvas(viewport, {scale:2, backgroundColor: null}).then(canvas=>{
+    const link = document.createElement('a');
+    link.download = 'ritual-card.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }).catch(err=>{
+    alert('Export failed — try screenshot. '+err);
+  });
+});
+
+/* ---------------------------
+   Accessibility & keyboard
+   --------------------------- */
+signInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); revealBtn.click(); } });
+
+/* ---------------------------
+   Start particle loop (already running above). We keep it alive and controlled by spawn calls.
+   --------------------------- */
+
+/* optional: small ambient particle trickle to keep scene alive */
+setInterval(()=>{
+  const rect = viewport.getBoundingClientRect();
+  const cx = rect.width/2 + (Math.random()-0.5)*120;
+  const cy = rect.height*0.6 + (Math.random()-0.5)*60;
+  spawnParticle(cx, cy, 0.8);
+}, 4200);
 </script>
 </body>
 </html>
