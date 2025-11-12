@@ -3,28 +3,24 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Your Zodiac Ritual — RitualNet</title>
-<!-- Basic social meta (edit as needed) -->
-<meta name="description" content="Reveal your Zodiac Ritual — a RitualNet card that feels dark, tactile, and share-ready." />
-<!-- Styles -->
+<title>Zodiac Ritual — Simple Reveal</title>
 <style>
   :root{
     --bg:#060608;
     --panel:#0f0f12;
     --accent:#b51c1c;
     --gold:#cfa46b;
-    --muted:#8a8a8a;
-    --glass: rgba(255,255,255,0.03);
-    --card-w: 420px;
+    --muted:#9a9a9a;
+    --card-w:420px;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0;
     font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: radial-gradient(1200px 600px at 10% 10%, rgba(181,28,28,0.06), transparent 10%),
-                radial-gradient(800px 400px at 90% 90%, rgba(207,164,107,0.03), transparent 10%),
-                var(--bg);
+    background:
+      radial-gradient(900px 450px at 10% 10%, rgba(181,28,28,0.05), transparent 8%),
+      linear-gradient(180deg,#050506 0%, #0b0b0d 100%);
     color:#eee;
     display:flex;
     align-items:center;
@@ -32,474 +28,153 @@
     padding:28px;
   }
 
-  .stage{
-    width:100%;
-    max-width:1100px;
-    display:grid;
-    grid-template-columns: 360px 1fr;
-    gap:28px;
-    align-items:start;
+  .wrap{ width:100%; max-width:900px; display:flex; gap:28px; align-items:flex-start; justify-content:center; }
+  .left{ width:360px; }
+  h1{ font-family:"Georgia",serif; color:var(--gold); margin:0 0 8px; font-size:20px }
+  p.lead{ color:var(--muted); margin:0 0 16px; font-size:13px }
+
+  .input-row{ display:flex; gap:8px; margin-bottom:12px }
+  input[type="text"]{
+    flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
+    background:rgba(255,255,255,0.02); color:#fff; font-size:14px;
+  }
+  button{ padding:10px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:700; }
+  .btn-primary{ background:linear-gradient(90deg,#b51c1c,#cfa46b); color:#080808 }
+
+  .preview{ width:var(--card-w); background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
+           border-radius:14px; padding:20px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+           position:relative; overflow:hidden; }
+  .sigil{ font-size:48px; color:var(--gold); display:block; margin-bottom:10px; opacity:0; transform:scale(.8); }
+  .card-title{ font-family:"Georgia",serif; color:var(--gold); font-size:18px; margin:6px 0; opacity:0; transform:translateY(8px); }
+  .card-text{ color:#e9e9e9; font-size:14px; line-height:1.4; background:rgba(255,255,255,0.01); padding:12px; border-radius:8px; margin-top:10px; min-height:72px; opacity:0; transform:translateY(8px) }
+
+  /* glow ring (animated) */
+  .glow-ring{
+    position:absolute; left:50%; top:20px; width:520px; height:520px;
+    transform:translate(-50%,-10%); border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, rgba(181,28,28,0.10), transparent 15%),
+                radial-gradient(circle at 70% 70%, rgba(207,164,107,0.06), transparent 12%);
+    filter: blur(28px); opacity:0; pointer-events:none;
   }
 
-  /* Left panel: controls + preview */
-  .panel{
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:18px;
-    padding:18px;
-    box-shadow: 0 6px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  /* reveal animations */
+  .animate-sigil{ animation: sigilIn .72s cubic-bezier(.22,.9,.28,1) forwards; }
+  @keyframes sigilIn {
+    0%{ opacity:0; transform:scale(.6) rotate(-10deg) }
+    60%{ opacity:1; transform:scale(1.06) rotate(6deg) }
+    100%{ opacity:1; transform:scale(1) rotate(0) }
   }
+  .animate-title{ animation: titleIn .6s ease forwards; animation-delay:.12s; }
+  @keyframes titleIn { from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:translateY(0) } }
+  .animate-text{ animation: textIn .6s ease forwards; animation-delay:.22s; }
+  @keyframes textIn { from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:translateY(0) } }
 
-  h1{
-    margin:6px 0 12px;
-    font-family: "Georgia", "Times New Roman", serif;
-    font-weight:600;
-    letter-spacing:0.4px;
-    color:var(--gold);
-    font-size:20px;
-  }
-  p.lead{color:var(--muted); margin:0 0 14px; font-size:13px}
-
-  .sign-grid{
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:8px;
-    margin:10px 0 14px;
-  }
-  .sign-btn{
-    background:var(--glass);
-    border-radius:10px;
-    padding:10px;
-    text-align:center;
-    cursor:pointer;
-    border:1px solid rgba(255,255,255,0.03);
-    user-select:none;
-    transition:transform .14s ease, box-shadow .14s ease;
-    font-size:14px;
-    color:#fff;
-  }
-  .sign-btn:hover{ transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,0.6) }
-  .sign-btn.active{ outline:2px solid rgba(181,28,28,0.25); background: linear-gradient(180deg, rgba(181,28,28,0.06), transparent) }
-
-  .controls{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap }
-  .btn{
-    background:transparent;
-    border:1px solid rgba(255,255,255,0.06);
-    padding:10px 12px;
-    border-radius:10px;
-    color:#fff;
-    cursor:pointer;
-    font-weight:600;
-    font-size:13px;
-  }
-  .btn.primary{ background: linear-gradient(90deg, rgba(181,28,28,0.9), rgba(207,164,107,0.08)); border:none; color:#080808 }
-  .small{font-size:12px; padding:8px 10px}
-
-  /* Right panel: big preview area */
-  .preview-wrap{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:520px;
-  }
-
-  .card-outer{
-    width:var(--card-w);
-    max-width:100%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:16px;
-    padding:20px;
-    border:1px solid rgba(255,255,255,0.04);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-    transform-origin:center center;
-  }
-
-  .sigil{
-    width:74px;
-    height:74px;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid rgba(255,255,255,0.03);
-    font-family: "Georgia", serif;
-    font-size:34px;
-    color:var(--gold);
-    margin-bottom:12px;
-    filter: drop-shadow(0 6px 16px rgba(181,28,28,0.06));
-  }
-
-  .title{
-    font-family: "Georgia", serif;
-    font-size:20px;
-    color:var(--gold);
-    margin:0 0 6px;
-    letter-spacing:0.3px;
-  }
-  .tagline{ color:var(--muted); margin:0 0 12px; font-size:13px }
-
-  .flavor{
-    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
-    padding:12px;
-    border-radius:10px;
-    font-size:14px;
-    line-height:1.38;
-    color:#e9e9e9;
-    min-height:92px;
-  }
-
-  .mini{ margin-top:12px; color:var(--muted); font-size:13px }
-
-  .meta{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:14px;
-    gap:8px;
-  }
-  .meter{
-    font-weight:700;
-    color:var(--accent);
-    letter-spacing:0.6px;
-  }
-  .archive{
-    font-size:12px;
-    color:var(--muted);
-  }
-
-  /* reveal animation */
-  .hidden{ opacity:0; transform: scale(.96) translateY(8px); }
-  .reveal{
-    animation:revealCard .62s cubic-bezier(.22,.9,.28,1) forwards;
-  }
-  @keyframes revealCard{
-    0%{ opacity:0; transform:scale(.92) translateY(18px) rotate(-6deg) }
-    60%{ transform:scale(1.02) translateY(-6px) rotate(2deg) ; opacity:1 }
-    100%{ transform:scale(1) translateY(0) rotate(0) ; opacity:1 }
-  }
-
-  .note{color:var(--muted); font-size:12px; margin-top:12px;}
-  .footer{ margin-top:14px; color:var(--muted); font-size:12px }
-
-  /* small screens */
-  @media (max-width:920px){
-    .stage{ grid-template-columns:1fr; }
-    .preview-wrap{ margin-top:10px }
-  }
+  /* small responsive */
+  @media (max-width:880px){ .wrap{flex-direction:column; align-items:center} .left{width:100%} .preview{width:90%} }
 </style>
 </head>
 <body>
 
-<div class="stage">
+<div class="wrap">
+  <div class="left">
+    <h1>RitualNet — Zodiac Ritual</h1>
+    <p class="lead">Type your zodiac sign (e.g., Aries) — press Reveal. A short ritual & prediction will appear with a quick glowy animation.</p>
 
-  <!-- left panel -->
-  <div class="panel">
-    <h1>Your Zodiac Ritual</h1>
-    <p class="lead">No wallet. No accounts. Pick your sign — reveal a dark ritual card styled for RitualNet. Export or share instantly.</p>
-
-    <div class="sign-grid" id="signGrid" aria-hidden="false">
-      <!-- generated buttons -->
+    <div class="input-row">
+      <input id="signInput" type="text" placeholder="Enter sign name (e.g., aries)" aria-label="Zodiac sign">
+      <button id="revealBtn" class="btn-primary">Reveal</button>
     </div>
 
-    <div style="display:flex; gap:10px; align-items:center; margin-top:6px;">
-      <select id="manualSelect" class="btn small" style="background:transparent; border:1px solid rgba(255,255,255,0.04); color:#fff">
-        <option value="">— or choose from dropdown —</option>
-      </select>
-
-      <button id="revealBtn" class="btn primary">Reveal My Ritual 🔮</button>
-    </div>
-
-    <div class="controls" style="margin-top:14px;">
-      <button id="copyTweetBtn" class="btn small">Copy tweet text</button>
-      <button id="shareXBtn" class="btn small">Share to X</button>
-      <button id="exportBtn" class="btn small">Export card image</button>
-    </div>
-
-    <div class="note">Tip: Encourage people to collect all 12 cards — each share includes a unique Archive #.</div>
-    <div class="footer">Made for RitualNet • Customize copy & style freely</div>
+    <div style="color:var(--muted); font-size:13px">Tip: Accept common spellings (aries, taurus, gemini, cancer, leo, virgo, libra, scorpio, sagittarius, capricorn, aquarius, pisces)</div>
   </div>
 
-  <!-- preview -->
-  <div class="preview-wrap">
-    <div id="card" class="card-outer hidden" role="article" aria-live="polite">
-      <div class="sigil" id="cardSigil">♏</div>
-      <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
-        <div style="flex:1;">
-          <div class="title" id="cardTitle">The Shadow Ritual</div>
-          <div class="tagline" id="cardTagline">Power forged under the surface.</div>
-        </div>
-      </div>
-      <div class="flavor" id="cardFlavor">You transmute what others discard. Your ritual is quiet, precise, and irreversible — you turn hidden things into gravitas. Intensity is your language.</div>
+  <div class="preview" id="preview">
+    <div class="glow-ring" id="glow"></div>
 
-      <div class="mini" id="cardMini"><strong>Mini-ritual:</strong> Breathe in the dark; exhale a secret.</div>
-
-      <div class="meta">
-        <div class="meter" id="cardEnergy">Energy: 87%</div>
-        <div class="archive" id="cardArchive">Archive #3182</div>
-      </div>
-    </div>
+    <div class="sigil" id="sigil">♏</div>
+    <div class="card-title" id="title">The Shadow Ritual</div>
+    <div class="card-text" id="text">You transmute what others discard. Your ritual is quiet, precise, and irreversible — you turn hidden things into gravitas.</div>
   </div>
-
 </div>
 
-<!-- html2canvas (optional for image export) -->
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
 <script>
-/* ---------------------------
-   Rituals data (all 12)
-   --------------------------- */
-const rituals = {
-  aries: {
-    key: "aries", name: "Aries", glyph: "♈",
-    title: "The First Flame",
-    tagline: "You spark the world aflame.",
-    flavor: "You move before the world asks permission. Your ritual is a quick, burning oath — strike once, burn bright, and do not apologize. Courage is your altar.",
-    mini: "Clap once and whisper your next move.",
-    tweet: "My Zodiac Ritual: The First Flame ♈ — I burn first, then ask. @Ritual_Net"
-  },
-  taurus: {
-    key: "taurus", name: "Taurus", glyph: "♉",
-    title: "The Grounding",
-    tagline: "Roots deeper than rumor.",
-    flavor: "You shape reality by staying. Your ritual is slow and steady: a deep breath held until the world conforms. Persistence is carved in stone.",
-    mini: "Plant your palm on a surface and breathe four counts.",
-    tweet: "My Zodiac Ritual: The Grounding ♉ — I endure, I shape. @Ritual_Net"
-  },
-  gemini: {
-    key: "gemini", name: "Gemini", glyph: "♊",
-    title: "The Split Signal",
-    tagline: "Two frequencies, one pulse.",
-    flavor: "You are a twin broadcast — restless, witty, and electric. Your ritual is a whispered exchange with yourself, a secret you tell twice in different voices. Flexibility is your charm.",
-    mini: "Say your name forwards, then backwards.",
-    tweet: "My Zodiac Ritual: The Split Signal ♊ — I speak in echoes. @Ritual_Net"
-  },
-  cancer: {
-    key: "cancer", name: "Cancer", glyph: "♋",
-    title: "The Shell of Echoes",
-    tagline: "Secrets held like keepsakes.",
-    flavor: "You carry oceans beneath a calm surface. Your ritual is an inward tide — listen to the echoes that return when you whisper. Emotions are maps, not weaknesses.",
-    mini: "Press a fingertip to your chest and hum.",
-    tweet: "My Zodiac Ritual: The Shell of Echoes ♋ — The tide answers me. @Ritual_Net"
-  },
-  leo: {
-    key: "leo", name: "Leo", glyph: "♌",
-    title: "The Golden Rite",
-    tagline: "Light is your language.",
-    flavor: "You take center, not by demand but by gravity. Your ritual is a performed vow — stand, make a small gesture for the room, and collect the light like coin. Pride is a tool.",
-    mini: "Lift your chin; smile for three slow counts.",
-    tweet: "My Zodiac Ritual: The Golden Rite ♌ — I gather light. @Ritual_Net"
-  },
-  virgo: {
-    key: "virgo", name: "Virgo", glyph: "♍",
-    title: "The Precision",
-    tagline: "Order as devotion.",
-    flavor: "You consecrate through craft. Your ritual is a tidy motion repeated until it becomes law — small corrections, great results. Discipline is devotion.",
-    mini: "Tuck a small note away for tomorrow.",
-    tweet: "My Zodiac Ritual: The Precision ♍ — I perfect the silence. @Ritual_Net"
-  },
-  libra: {
-    key: "libra", name: "Libra", glyph: "♎",
-    title: "The Balance",
-    tagline: "Harmony made visible.",
-    flavor: "You weigh the chaos and make symmetry. Your ritual is a choice between two equal sins — choose the kinder one, then set it as a standard. Equilibrium is your offering.",
-    mini: "Close your eyes; name one thing you’ll balance today.",
-    tweet: "My Zodiac Ritual: The Balance ♎ — I hold the scales. @Ritual_Net"
-  },
-  scorpio: {
-    key: "scorpio", name: "Scorpio", glyph: "♏",
-    title: "The Shadow Ritual",
-    tagline: "Power forged under the surface.",
-    flavor: "You transmute what others discard. Your ritual is quiet, precise, and irreversible — you turn hidden things into gravitas. Intensity is your language.",
-    mini: "Breathe in the dark; exhale a secret.",
-    tweet: "My Zodiac Ritual: The Shadow Ritual ♏ — I turn silence into signal. @Ritual_Net"
-  },
-  sagittarius: {
-    key: "sagittarius", name: "Sagittarius", glyph: "♐",
-    title: "The Arrow Path",
-    tagline: "Horizons pull at your bones.",
-    flavor: "You vow to chase what others forget to name. Your ritual is a promise whispered into the wind — mapless motion guided by hunger. Curiosity is your creed.",
-    mini: "Point to a distant spot and name one goal.",
-    tweet: "My Zodiac Ritual: The Arrow Path ♐ — I chase the unlabeled horizon. @Ritual_Net"
-  },
-  capricorn: {
-    key: "capricorn", name: "Capricorn", glyph: "♑",
-    title: "The Summit",
-    tagline: "Climb until the ground looks small.",
-    flavor: "You worship at the altar of ascent. Your ritual is a notch on a map — one slow, steady step that compounds into summit. Ambition is your sacrament.",
-    mini: "Make a small, measurable promise for the week.",
-    tweet: "My Zodiac Ritual: The Summit ♑ — I climb, quietly relentless. @Ritual_Net"
-  },
-  aquarius: {
-    key: "aquarius", name: "Aquarius", glyph: "♒",
-    title: "The Signal",
-    tagline: "You transmit what no one else decodes.",
-    flavor: "You are the antenna for future noise. Your ritual is a deliberate oddity — you do one strange thing to shift the pattern. Innovation is your altar.",
-    mini: "Share one idea with a stranger (online or off).",
-    tweet: "My Zodiac Ritual: The Signal ♒ — I send what’s next. @Ritual_Net"
-  },
-  pisces: {
-    key: "pisces", name: "Pisces", glyph: "♓",
-    title: "The Dreaming",
-    tagline: "Borders blur; meaning flows.",
-    flavor: "You drift between the seen and the born. Your ritual is a surrender to image and intuition — dream, then leave a token to remember. Imagination is your geography.",
-    mini: "Draw one tiny shape on your palm.",
-    tweet: "My Zodiac Ritual: The Dreaming ♓ — I cross the soft places. @Ritual_Net"
-  }
+/* Minimal rituals map (lowercase keys) */
+const simple = {
+  aries: { glyph:"♈", title:"The First Flame", text:"You move before the world asks permission. Strike once, burn bright, and do not apologize." },
+  taurus: { glyph:"♉", title:"The Grounding", text:"You shape reality by staying. Hold a long breath and let the world bend to patient will." },
+  gemini: { glyph:"♊", title:"The Split Signal", text:"You speak in echoes. Whisper twice, once for the future and once for the past." },
+  cancer: { glyph:"♋", title:"The Shell of Echoes", text:"You carry oceans beneath calm. Press a fingertip to your heart and listen to the tide." },
+  leo: { glyph:"♌", title:"The Golden Rite", text:"You collect the light. Stand, make a small gesture, and take back the room." },
+  virgo: { glyph:"♍", title:"The Precision", text:"You consecrate through craft. Do one small tidy thing perfectly and watch order reward you." },
+  libra: { glyph:"♎", title:"The Balance", text:"You weigh chaos into symmetry. Choose the kinder option and set it as your standard." },
+  scorpio: { glyph:"♏", title:"The Shadow Ritual", text:"You turn silence into signal. Breathe deep, and let hidden truths sharpen into tools." },
+  sagittarius: { glyph:"♐", title:"The Arrow Path", text:"You chase unlabeled horizons. Point to a distant place and vow one small step." },
+  capricorn: { glyph:"♑", title:"The Summit", text:"You climb quietly. Make one measurable promise and take the step that keeps you ascending." },
+  aquarius: { glyph:"♒", title:"The Signal", text:"You broadcast the future. Do one strange, intentional thing to shift the pattern." },
+  pisces: { glyph:"♓", title:"The Dreaming", text:"You move between tides. Draw one tiny symbol on your palm and remember the path." }
 };
 
-/* ---------------------------
-   DOM refs & helpers
-   --------------------------- */
-const signGrid = document.getElementById('signGrid');
-const manualSelect = document.getElementById('manualSelect');
-const revealBtn = document.getElementById('revealBtn');
-const cardEl = document.getElementById('card');
-const cardSigil = document.getElementById('cardSigil');
-const cardTitle = document.getElementById('cardTitle');
-const cardTagline = document.getElementById('cardTagline');
-const cardFlavor = document.getElementById('cardFlavor');
-const cardMini = document.getElementById('cardMini');
-const cardEnergy = document.getElementById('cardEnergy');
-const cardArchive = document.getElementById('cardArchive');
-const copyTweetBtn = document.getElementById('copyTweetBtn');
-const shareXBtn = document.getElementById('shareXBtn');
-const exportBtn = document.getElementById('exportBtn');
+const input = document.getElementById('signInput');
+const btn = document.getElementById('revealBtn');
+const sigilEl = document.getElementById('sigil');
+const titleEl = document.getElementById('title');
+const textEl = document.getElementById('text');
+const glow = document.getElementById('glow');
 
-let currentKey = null;
+/* normalize user input to key */
+function norm(v){ return (v||"").trim().toLowerCase().replace(/[^a-z]/g,'') }
 
-/* Populate sign buttons + dropdown */
-Object.values(rituals).forEach(r=>{
-  const btn = document.createElement('button');
-  btn.className = 'sign-btn';
-  btn.type = 'button';
-  btn.innerHTML = `<div style="font-size:16px;margin-bottom:6px">${r.glyph}</div><div style="font-size:12px">${r.name}</div>`;
-  btn.dataset.key = r.key;
-  btn.addEventListener('click', ()=> {
-    // mark active
-    document.querySelectorAll('.sign-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    manualSelect.value = r.key;
-    currentKey = r.key;
-  });
-  signGrid.appendChild(btn);
+/* simple sparkle animation using CSS + JS */
+function playRevealAnimation(){
+  // glow pulse
+  glow.style.opacity = "1";
+  glow.style.transform = "translate(-50%,-10%) scale(.9)";
+  glow.style.transition = "opacity .12s ease, transform .7s cubic-bezier(.22,.9,.28,1)";
+  setTimeout(()=> { glow.style.transform = "translate(-50%,-10%) scale(1.12)"; }, 20);
+  setTimeout(()=> { glow.style.opacity = "0"; }, 720);
 
-  const opt = document.createElement('option');
-  opt.value = r.key;
-  opt.textContent = r.name + ' ' + r.glyph;
-  manualSelect.appendChild(opt);
-});
-
-/* reveal logic */
-function randomEnergy(){ return Math.floor(Math.random()*22)+78 } // 78-99
-function randomArchive(){ return Math.floor(Math.random()*9000)+1000 } // 1000-9999
-
-function showCard(key){
-  const r = rituals[key];
-  if(!r) return;
-  // set fields
-  cardSigil.textContent = r.glyph;
-  cardTitle.textContent = r.title;
-  cardTagline.textContent = r.tagline;
-  cardFlavor.textContent = r.flavor;
-  cardMini.innerHTML = `<strong>Mini-ritual:</strong> ${r.mini}`;
-  cardEnergy.textContent = `Energy: ${randomEnergy()}%`;
-  cardArchive.textContent = `Archive #${randomArchive()}`;
-  currentKey = key;
-
-  // play reveal animation
-  cardEl.classList.remove('hidden');
-  cardEl.classList.remove('reveal');
-  // force reflow
-  void cardEl.offsetWidth;
-  cardEl.classList.add('reveal');
+  // animate elements in
+  sigilEl.classList.remove('animate-sigil'); void sigilEl.offsetWidth; sigilEl.classList.add('animate-sigil');
+  titleEl.classList.remove('animate-title'); void titleEl.offsetWidth; titleEl.classList.add('animate-title');
+  textEl.classList.remove('animate-text'); void textEl.offsetWidth; textEl.classList.add('animate-text');
 }
 
-/* button handlers */
-revealBtn.addEventListener('click', ()=>{
-  const selection = currentKey || manualSelect.value;
-  if(!selection){
-    // small UX nudge: briefly flicker the grid
-    signGrid.animate([{opacity:1},{opacity:.6},{opacity:1}], {duration:420});
-    return;
+/* update card from key */
+function revealForKey(key){
+  const r = simple[key];
+  if(!r){
+    // fallback - random mystical line if sign not found
+    sigilEl.textContent = "✶";
+    titleEl.textContent = "The Unknown Rite";
+    textEl.textContent = "The signs misread you. Step back, breathe, and name the intention aloud.";
+  } else {
+    sigilEl.textContent = r.glyph;
+    titleEl.textContent = r.title;
+    textEl.textContent = r.text;
   }
-  showCard(selection);
-});
-
-// sync dropdown selection with buttons
-manualSelect.addEventListener('change', ()=>{
-  const key = manualSelect.value;
-  if(!key) return;
-  document.querySelectorAll('.sign-btn').forEach(b=>b.classList.remove('active'));
-  const btn = document.querySelector(`.sign-btn[data-key="${key}"]`);
-  if(btn) btn.classList.add('active');
-  currentKey = key;
-});
-
-/* tweet / share */
-function getTweetText(){
-  if(!currentKey) return "I revealed my Zodiac Ritual on RitualNet — find yours: @Ritual_Net";
-  return rituals[currentKey].tweet;
+  playRevealAnimation();
 }
 
-copyTweetBtn.addEventListener('click', async ()=>{
-  const txt = getTweetText();
-  try{
-    await navigator.clipboard.writeText(txt);
-    copyTweetBtn.textContent = "Copied ✓";
-    setTimeout(()=> copyTweetBtn.textContent = "Copy tweet text", 1300);
-  }catch(e){
-    copyTweetBtn.textContent = "Copy failed";
-    setTimeout(()=> copyTweetBtn.textContent = "Copy tweet text", 1300);
-  }
-});
-
-shareXBtn.addEventListener('click', ()=>{
-  const txt = getTweetText();
-  const url = location.href; // you can replace with canonical site link
-  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(url)}`;
-  window.open(intent, '_blank', 'noopener,noreferrer');
-});
-
-/* export via html2canvas */
-exportBtn.addEventListener('click', ()=> {
-  // make sure card visible
-  if(getComputedStyle(cardEl).opacity === "0"){
-    alert("Reveal your ritual first.");
+/* button handler */
+btn.addEventListener('click', ()=>{
+  const val = norm(input.value);
+  if(!val){
+    input.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}], {duration:320});
     return;
   }
-  // temporarily enlarge for better capture (not required)
-  const scale = 2;
-  const origW = cardEl.style.width;
-  cardEl.style.transform = "scale(1.0)";
-
-  html2canvas(cardEl, {scale:2, backgroundColor: null, useCORS:true}).then(canvas=>{
-    // open in new tab for user to save
-    const data = canvas.toDataURL("image/png");
-    const w = window.open("");
-    if(!w) { alert("Popup blocked — download blocked. Try right-clicking the card to save instead."); return; }
-    const imgHTML = `<img src="${data}" style="max-width:100%"><p style="color:#ccc;font-family:system-ui;font-size:13px">Right-click → Save image as...</p>`;
-    w.document.write(imgHTML);
-    w.document.title = "Ritual Card — Save";
-  }).catch(err=>{
-    alert("Export failed — try a screenshot. Error: "+err);
-  }).finally(()=>{
-    // restore
-    cardEl.style.width = origW;
-  });
+  revealForKey(val);
 });
 
-/* optional: reveal a default (scorpio) on load for effect */
-window.addEventListener('load', ()=>{
-  // slight delay so page paints
+/* allow Enter key to trigger reveal */
+input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); btn.click(); } });
+
+/* optional: reveal default (scorpio) on load after slight delay */
+window.addEventListener('load', ()=> {
   setTimeout(()=> {
-    document.querySelector('.sign-btn[data-key="scorpio"]').classList.add('active');
-    manualSelect.value = 'scorpio';
-    currentKey = 'scorpio';
-    showCard('scorpio');
-  }, 520);
+    input.value = "Scorpio";
+    revealForKey('scorpio');
+  }, 360);
 });
-
 </script>
 </body>
 </html>
