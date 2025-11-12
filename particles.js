@@ -1,16 +1,11 @@
 // particles.js — lightweight particle engine used by app.js
-// API:
-//   init(canvasElement)         -> call once
-//   spawnParticle(x,y,strength) -> spawn a burst particle
-//   resize(w,h)                 -> set canvas size (optional, but recommended)
-// The module uses global requestAnimationFrame to run.
-
+// particles.js — lightweight particle engine
 (function(global){
   function Particles(canvas){
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.particles = [];
-    this.max = 80;
+    this.max = 100;
     this.running = true;
     this._loop = this._loop.bind(this);
     requestAnimationFrame(this._loop);
@@ -57,10 +52,7 @@
     requestAnimationFrame(this._loop);
   };
 
-  Particles.prototype.resize = function(w,h){
-    this.canvas.width = Math.max(1, Math.floor(w));
-    this.canvas.height = Math.max(1, Math.floor(h));
-  };
+  Particles.prototype.resize = function(w,h){ this.canvas.width = Math.max(1, Math.floor(w)); this.canvas.height = Math.max(1, Math.floor(h)); };
 
   global.Particles = Particles;
 })(window);
